@@ -244,6 +244,7 @@ with st.sidebar:
                         st.session_state.indexed_chunks = all_chunks
                         st.session_state.indexed_files = indexed_names
                         st.session_state.total_chunks_count = total_indexed
+                        st.session_state.embedding_info = engine.embedding_info
                         st.success(f"Indexed {total_indexed} chunks successfully!")
                         st.rerun()
 
@@ -255,13 +256,17 @@ with st.sidebar:
     # Knowledge Base Stats
     st.subheader("3. Knowledge Base Status")
     if st.session_state.total_chunks_count > 0:
+        emb_info = getattr(st.session_state, "embedding_info", "Active")
         st.markdown(
             f"""
             <div class="metric-box">
                 <div class="badge">ACTIVE INDEX</div>
                 <h4 style="margin: 8px 0 4px 0;">{st.session_state.total_chunks_count} Chunks</h4>
-                <p style="font-size: 0.82rem; color: #94a3b8; margin: 0;">
+                <p style="font-size: 0.82rem; color: #94a3b8; margin: 0 0 4px 0;">
                     <b>Files:</b> {', '.join(st.session_state.indexed_files)}
+                </p>
+                <p style="font-size: 0.78rem; color: #818cf8; margin: 0;">
+                    <b>Embeddings:</b> {emb_info}
                 </p>
             </div>
             """,

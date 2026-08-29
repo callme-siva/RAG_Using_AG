@@ -1,10 +1,10 @@
 """
 Core RAG Engine: Handles document processing, chunking, embeddings, vector indexing, and QA generation.
+Includes resilient fallback to Chroma's built-in ONNX embeddings if API embedding endpoints fail.
 """
 
 import os
 import io
-import tempfile
 from typing import List, Dict, Any, Generator, Tuple
 import pypdf
 
@@ -12,13 +12,33 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
+from langchain_core.embeddings import Embeddings
 
-# Vector Store
-from langchain_community.vectorstores import Chroma
+# Vector Store (support both langchain-chroma and langchain-community)
+try:
+    from langchain_chroma import Chroma
+except ImportError:
+    from langchain_community.vectorstores import Chroma
 
 # Embedding & Chat Model Providers
 from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
+
+
+class LocalDefaultEmbeddings(Embeddings):
+    """
+    Zero-configuration local embedding fallback using Chroma's built-in ONNX model.
+    Runs locally on CPU/Metal with zero network calls and zero quota constraints.
+    """
+    def __init__(self):
+        from chromadb.utils import embedding_functions
+        self._fn = embedding_functions.DefaultEmbeddingFunction()
+
+    def embed_documents(self, texts: List[str]) -> List[List[float]]:
+        return self._fn(texts)
+
+    def embed_query(self, text: str) -> List[float]:
+        return self._fn([text])[0]
 
 
 class RAGEngine:
@@ -47,14 +67,15 @@ class RAGEngine:
         self.vector_store: Chroma | None = None
         self.embedding_model = self._initialize_embeddings()
         self.llm = self._initialize_llm()
+        self.embedding_info = ""
 
-    def _initialize_embeddings(self):
+    def _initialize_embeddings(self) -> Embeddings:
         """Initializes the embedding model based on selected provider."""
         if not self.api_key:
             raise ValueError(f"API Key for {self.provider} is required.")
 
         if self.provider == "Google Gemini":
-            # models/embedding-001 is universally supported across Gemini API versions for embedContent
+            # models/embedding-001 is universally supported across Gemini API versions
             return GoogleGenerativeAIEmbeddings(
                 model="models/embedding-001",
                 google_api_key=self.api_key,
@@ -65,7 +86,7 @@ class RAGEngine:
                 openai_api_key=self.api_key,
             )
         else:
-            raise ValueError(f"Unsupported provider: {self.provider}")
+            return LocalDefaultEmbeddings()
 
     def _initialize_llm(self):
         """Initializes the Large Language Model."""
@@ -132,15 +153,15 @@ class RAGEngine:
     def build_vector_store(self, chunks: List[Document]) -> int:
         """
         Builds or updates the in-memory Chroma vector store with document chunks.
-        Includes automatic fallback for Google embedding model variants.
+        Includes automatic fallback to local ONNX embeddings if remote API embedding fails.
         """
         if not chunks:
             raise ValueError("No valid document chunks to index.")
 
         if self.provider == "Google Gemini":
-            # List candidate embedding model names in order of compatibility
-            candidates = ["models/embedding-001", "embedding-001", "text-embedding-004", "models/text-embedding-004"]
-            last_err = None
+            # Try available Gemini embedding model variants, then fallback to local ONNX embeddings
+            candidates = ["models/embedding-001", "embedding-001", "text-embedding-004"]
+            built = False
             for model_name in candidates:
                 try:
                     emb = GoogleGenerativeAIEmbeddings(
@@ -152,18 +173,38 @@ class RAGEngine:
                         embedding=emb,
                     )
                     self.embedding_model = emb
-                    return len(chunks)
-                except Exception as e:
-                    last_err = e
+                    self.embedding_info = f"Google ({model_name})"
+                    built = True
+                    break
+                except Exception:
                     continue
-            if last_err:
-                raise last_err
+
+            # If remote embedding failed (e.g. 404 or quota), use local ONNX embeddings seamlessly
+            if not built:
+                local_emb = LocalDefaultEmbeddings()
+                self.vector_store = Chroma.from_documents(
+                    documents=chunks,
+                    embedding=local_emb,
+                )
+                self.embedding_model = local_emb
+                self.embedding_info = "Local ONNX (all-MiniLM-L6-v2 fallback)"
         else:
-            self.vector_store = Chroma.from_documents(
-                documents=chunks,
-                embedding=self.embedding_model,
-            )
-            return len(chunks)
+            try:
+                self.vector_store = Chroma.from_documents(
+                    documents=chunks,
+                    embedding=self.embedding_model,
+                )
+                self.embedding_info = f"{self.provider} Embeddings"
+            except Exception:
+                local_emb = LocalDefaultEmbeddings()
+                self.vector_store = Chroma.from_documents(
+                    documents=chunks,
+                    embedding=local_emb,
+                )
+                self.embedding_model = local_emb
+                self.embedding_info = "Local ONNX (all-MiniLM-L6-v2 fallback)"
+
+        return len(chunks)
 
     def retrieve_context(self, query: str) -> List[Document]:
         """

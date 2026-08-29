@@ -62,15 +62,31 @@ flowchart LR
 
 ---
 
+## 📚 Documentation & Deep-Dive Guides
+
+To help developers, researchers, and students understand every layer of this application, we have prepared comprehensive guides:
+
+| Document | Description |
+| :--- | :--- |
+| 🏛️ **[ARCHITECTURE.md](ARCHITECTURE.md)** | **System Architecture & Deep-Dive**: In-depth diagrams, execution sequence, chunking mechanics, and resilience fallback matrix. |
+| 🧠 **[docs/RAG_EXPLAINED.md](docs/RAG_EXPLAINED.md)** | **RAG for Everyone**: A conceptual guide covering why LLMs hallucinate, vector embedding mathematics, and the RAG Triad. |
+| 🚀 **[docs/DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md)** | **Deployment Guide**: Step-by-step instructions for Streamlit Community Cloud, Hugging Face Spaces, and Docker containers. |
+
+---
+
 ## 📂 Repository Structure
 
 ```
 RAG_Using_AG/
 ├── .streamlit/
 │   └── config.toml                              # Custom dark UI theme & Streamlit server settings
+├── docs/
+│   ├── RAG_EXPLAINED.md                         # Conceptual guide to RAG, embeddings & evaluation
+│   └── DEPLOYMENT_GUIDE.md                      # Detailed deployment instructions (Cloud & Docker)
 ├── sample_data/
 │   ├── quantum_computing_and_ai_report.pdf     # Built-in demo technical whitepaper (PDF)
 │   └── ai_agents_guide.md                       # Built-in demo knowledge base guide (Markdown)
+├── ARCHITECTURE.md                              # Deep-dive architectural specification & sequence diagrams
 ├── verify_models.py                             # CLI model health check & diagnostics script
 ├── app.py                                       # Main Streamlit web application & UI
 ├── rag_engine.py                                # Core RAG logic (parsing, chunking, embeddings, vector store, QA chain)
@@ -79,7 +95,7 @@ RAG_Using_AG/
 ├── .env.example                                 # Template for API keys
 ├── .gitignore                                   # Excludes virtual environments, secrets, and caches
 ├── LICENSE                                      # MIT Open Source License
-└── README.md                                    # Documentation & Deployment Guide
+└── README.md                                    # Main Showcase & Getting Started Guide
 ```
 
 ---

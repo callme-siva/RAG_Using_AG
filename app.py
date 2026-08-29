@@ -164,18 +164,21 @@ with st.sidebar:
 
     # Upload files
     uploaded_files = st.file_uploader(
-        "Upload Documents (PDF, TXT, MD)",
+        "Upload Custom Documents (PDF, TXT, MD)",
         type=["pdf", "txt", "md"],
         accept_multiple_files=True,
     )
 
-    col1, col2 = st.columns(2)
+    st.markdown("**Or choose a built-in demo dataset:**")
+    col_d1, col_d2 = st.columns(2)
+    with col_d1:
+        load_demo_pdf = st.button("📄 Load Quantum Report (PDF)", use_container_width=True)
+    with col_d2:
+        load_demo_md = st.button("📝 Load AI Guide (MD)", use_container_width=True)
 
-    with col1:
-        load_demo = st.button("🚀 Load Demo Guide", use_container_width=True)
+    load_both = st.button("📚 Load Both Demo Datasets", use_container_width=True)
 
-    with col2:
-        clear_kb = st.button("🗑️ Reset All", use_container_width=True)
+    clear_kb = st.button("🗑️ Reset Knowledge Base", use_container_width=True)
 
     if clear_kb:
         reset_rag_state()
@@ -183,10 +186,11 @@ with st.sidebar:
         st.rerun()
 
     # Ingestion Trigger
-    process_docs = st.button("⚡ Index Documents", type="primary", use_container_width=True)
+    process_docs = st.button("⚡ Index Uploaded Documents", type="primary", use_container_width=True)
 
     # Ingestion Logic
-    if process_docs or load_demo:
+    load_any_demo = load_demo_pdf or load_demo_md or load_both
+    if process_docs or load_any_demo:
         if not api_key_input:
             st.error(f"❌ Please provide an API key for {selected_provider} to proceed.")
         else:
@@ -205,16 +209,25 @@ with st.sidebar:
                     all_chunks = []
                     indexed_names = []
 
-                    if load_demo:
-                        sample_path = Path(__file__).parent / "sample_data" / "ai_agents_guide.md"
-                        if sample_path.exists():
-                            with open(sample_path, "rb") as f:
-                                sample_bytes = f.read()
-                            demo_chunks = engine.load_and_split_file("ai_agents_guide.md", sample_bytes)
-                            all_chunks.extend(demo_chunks)
-                            indexed_names.append("ai_agents_guide.md (Demo)")
-                        else:
-                            st.warning("Demo document not found.")
+                    sample_dir = Path(__file__).parent / "sample_data"
+
+                    if load_demo_pdf or load_both:
+                        pdf_path = sample_dir / "quantum_computing_and_ai_report.pdf"
+                        if pdf_path.exists():
+                            with open(pdf_path, "rb") as f:
+                                pdf_bytes = f.read()
+                            pdf_chunks = engine.load_and_split_file("quantum_computing_and_ai_report.pdf", pdf_bytes)
+                            all_chunks.extend(pdf_chunks)
+                            indexed_names.append("quantum_computing_and_ai_report.pdf (Demo PDF)")
+
+                    if load_demo_md or load_both:
+                        md_path = sample_dir / "ai_agents_guide.md"
+                        if md_path.exists():
+                            with open(md_path, "rb") as f:
+                                md_bytes = f.read()
+                            md_chunks = engine.load_and_split_file("ai_agents_guide.md", md_bytes)
+                            all_chunks.extend(md_chunks)
+                            indexed_names.append("ai_agents_guide.md (Demo MD)")
 
                     if uploaded_files:
                         for uf in uploaded_files:
@@ -224,14 +237,14 @@ with st.sidebar:
                             indexed_names.append(uf.name)
 
                     if not all_chunks:
-                        st.warning("⚠️ Please upload a file or click 'Load Demo Guide' first.")
+                        st.warning("⚠️ Please upload a file or choose a demo dataset to index.")
                     else:
                         total_indexed = engine.build_vector_store(all_chunks)
                         st.session_state.rag_engine = engine
                         st.session_state.indexed_chunks = all_chunks
                         st.session_state.indexed_files = indexed_names
                         st.session_state.total_chunks_count = total_indexed
-                        st.success(f" Indexed {total_indexed} chunks successfully!")
+                        st.success(f"Indexed {total_indexed} chunks successfully!")
                         st.rerun()
 
                 except Exception as e:
@@ -301,9 +314,9 @@ with tab_chat:
         st.markdown("##### 💡 Suggested Questions to Try:")
         cols = st.columns(3)
         suggestions = [
+            "What are the NIST standards for Post-Quantum Cryptography (e.g. ML-KEM)?",
+            "Compare Superconducting Transmons vs Trapped Ions hardware.",
             "What is an AI Agent and how does it plan?",
-            "Explain the three metrics of the RAG Triad.",
-            "What is the difference between naive RAG and Agentic RAG?",
         ]
         for idx, col in enumerate(cols):
             with col:

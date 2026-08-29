@@ -28,7 +28,7 @@
   - **Google Gemini** (`gemini-2.5-flash`, `gemini-1.5-flash`, `gemini-1.5-pro` + `text-embedding-004`)
   - **OpenAI** (`gpt-4o-mini`, `gpt-4o`, `gpt-3.5-turbo` + `text-embedding-3-small`)
 - 📁 **Multi-Format Ingestion**: Ingest and process **PDFs** (with page tracking), **Markdown**, and **Plain Text** files.
-- 🎯 **1-Click Built-in Demo Dataset**: Test immediately with pre-loaded AI knowledge documents without having to upload files.
+- 🎯 **1-Click Built-in Demo Datasets**: Test immediately with pre-loaded sample documents (Multi-page **PDF Technical Report** on Quantum Computing and **Markdown Guide** on Autonomous AI Agents) without needing to upload files.
 - 🔍 **Interactive Source Citations**: Inspect exact chunk passages and page references for every generated answer.
 - 🎛️ **Live Hyperparameter Tuning**: Adjust chunk size, chunk overlap, retriever Top-$k$, and model temperature directly from the sidebar.
 - 📚 **Vector Store Inspector**: Search and explore all chunked documents and metadata in real-time.
@@ -67,17 +67,18 @@ flowchart LR
 ```
 RAG_Using_AG/
 ├── .streamlit/
-│   └── config.toml          # Custom dark UI theme & Streamlit server settings
+│   └── config.toml                              # Custom dark UI theme & Streamlit server settings
 ├── sample_data/
-│   └── ai_agents_guide.md   # Built-in demo knowledge base document
-├── app.py                   # Main Streamlit web application & UI
-├── rag_engine.py            # Core RAG logic (parsing, chunking, embeddings, vector store, QA chain)
-├── config.py                # Model configurations, default hyperparameters, constants
-├── requirements.txt         # Pinned Python package dependencies for Streamlit Cloud
-├── .env.example             # Template for API keys
-├── .gitignore               # Excludes virtual environments, secrets, and caches
-├── LICENSE                  # MIT Open Source License
-└── README.md                # Documentation & Deployment Guide
+│   ├── quantum_computing_and_ai_report.pdf     # Built-in demo technical whitepaper (PDF)
+│   └── ai_agents_guide.md                       # Built-in demo knowledge base guide (Markdown)
+├── app.py                                       # Main Streamlit web application & UI
+├── rag_engine.py                                # Core RAG logic (parsing, chunking, embeddings, vector store, QA chain)
+├── config.py                                    # Model configurations, default hyperparameters, constants
+├── requirements.txt                             # Pinned Python package dependencies for Streamlit Cloud
+├── .env.example                                 # Template for API keys
+├── .gitignore                                   # Excludes virtual environments, secrets, and caches
+├── LICENSE                                      # MIT Open Source License
+└── README.md                                    # Documentation & Deployment Guide
 ```
 
 ---

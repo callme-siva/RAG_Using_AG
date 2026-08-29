@@ -2,14 +2,15 @@
 Configuration and constants for the RAG application.
 """
 
-# Available LLM Providers & Models (Clean, verified production models only)
+# Available LLM Providers & Models
 PROVIDERS = {
     "Google Gemini": {
         "models": [
+            "gemini-3.6-flash",
             "gemini-1.5-flash",
             "gemini-1.5-pro",
         ],
-        "default_model": "gemini-1.5-flash",
+        "default_model": "gemini-3.6-flash",
         "embedding_model": "models/embedding-001",
         "key_env_var": "GOOGLE_API_KEY",
         "key_doc_url": "https://aistudio.google.com/app/apikey",

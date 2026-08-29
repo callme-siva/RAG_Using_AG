@@ -249,9 +249,9 @@ class RAGEngine:
             for chunk in chain.stream({"context": context_text, "question": query}):
                 yield chunk
         except Exception as e:
-            # If Google Gemini model failed, attempt fallback to stable gemini-1.5-flash / gemini-1.5-pro
+            # If Google Gemini model failed, attempt fallback models
             if self.provider == "Google Gemini":
-                fallback_models = ["gemini-1.5-flash", "gemini-1.5-pro"]
+                fallback_models = ["gemini-3.6-flash", "gemini-1.5-flash", "gemini-1.5-pro"]
                 streamed = False
                 for fb_model in fallback_models:
                     if fb_model == self.model_name:

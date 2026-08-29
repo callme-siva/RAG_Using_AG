@@ -71,6 +71,7 @@ RAG_Using_AG/
 ├── sample_data/
 │   ├── quantum_computing_and_ai_report.pdf     # Built-in demo technical whitepaper (PDF)
 │   └── ai_agents_guide.md                       # Built-in demo knowledge base guide (Markdown)
+├── verify_models.py                             # CLI model health check & diagnostics script
 ├── app.py                                       # Main Streamlit web application & UI
 ├── rag_engine.py                                # Core RAG logic (parsing, chunking, embeddings, vector store, QA chain)
 ├── config.py                                    # Model configurations, default hyperparameters, constants
@@ -117,9 +118,15 @@ Edit `.env`:
 GOOGLE_API_KEY=your_gemini_api_key_here
 OPENAI_API_KEY=your_openai_api_key_here
 ```
-> *Note: You can also enter your API key directly in the web app's sidebar!*
+### 5. (Optional) Run Model Diagnostics
+Verify that your API keys and models are functioning with zero errors:
+```bash
+python verify_models.py
+# Or pass keys explicitly:
+python verify_models.py --google-key YOUR_GEMINI_KEY --openai-key YOUR_OPENAI_KEY
+```
 
-### 5. Launch the Streamlit App
+### 6. Launch the Streamlit App
 ```bash
 streamlit run app.py
 ```

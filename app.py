@@ -150,6 +150,56 @@ with st.sidebar:
     if not api_key_input:
         st.info(f"💡 Get API key: [{provider_info['key_env_var']}]({provider_info['key_doc_url']})")
 
+    # Diagnostic Health Check Tool
+    with st.expander("🧪 Test & Diagnose API Models", expanded=False):
+        if not api_key_input:
+            st.info("Enter an API key above to run live diagnostics.")
+        else:
+            if st.button("▶️ Run Model Health Check", use_container_width=True):
+                with st.spinner(f"Testing {selected_provider} models..."):
+                    st.markdown(f"**Health Check Results ({selected_provider}):**")
+                    if selected_provider == "Google Gemini":
+                        from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
+                        # Check Embedding
+                        try:
+                            t0 = time.time()
+                            emb = GoogleGenerativeAIEmbeddings(model="models/embedding-001", google_api_key=api_key_input)
+                            v = emb.embed_query("ping")
+                            st.write(f"✅ `models/embedding-001`: Active ({round(time.time()-t0, 2)}s, dim: {len(v)})")
+                        except Exception:
+                            st.write("ℹ️ `Gemini Embedding`: Remote restricted -> Local ONNX active")
+
+                        # Check LLMs
+                        for m in provider_info["models"]:
+                            try:
+                                t0 = time.time()
+                                llm = ChatGoogleGenerativeAI(model=m, google_api_key=api_key_input, temperature=0.0)
+                                res = llm.invoke("Say 'OK'")
+                                lat = round(time.time() - t0, 2)
+                                st.write(f"✅ `{m}`: Operational ({lat}s)")
+                            except Exception as e:
+                                st.write(f"❌ `{m}`: Unavailable ({str(e)[:50]}...)")
+
+                    elif selected_provider == "OpenAI":
+                        from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+                        try:
+                            t0 = time.time()
+                            emb = OpenAIEmbeddings(model="text-embedding-3-small", openai_api_key=api_key_input)
+                            v = emb.embed_query("ping")
+                            st.write(f"✅ `text-embedding-3-small`: Active ({round(time.time()-t0, 2)}s)")
+                        except Exception as e:
+                            st.write(f"❌ `text-embedding-3-small`: {str(e)[:50]}...")
+
+                        for m in provider_info["models"]:
+                            try:
+                                t0 = time.time()
+                                llm = ChatOpenAI(model_name=m, openai_api_key=api_key_input, temperature=0.0)
+                                res = llm.invoke("Say 'OK'")
+                                lat = round(time.time() - t0, 2)
+                                st.write(f"✅ `{m}`: Operational ({lat}s)")
+                            except Exception as e:
+                                st.write(f"❌ `{m}`: Unavailable ({str(e)[:50]}...)")
+
     # 2. Hyperparameters
     with st.expander("🔧 RAG Tuning Parameters", expanded=False):
         chunk_size = st.slider("Chunk Size (characters)", 200, 2000, DEFAULT_CHUNK_SIZE, 50)

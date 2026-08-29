@@ -460,7 +460,7 @@ with tab_architecture:
             - `RecursiveCharacterTextSplitter` breaks text into small, contextual pieces (e.g., 800 chars) with overlap to preserve sentences across boundaries.
 
             #### 2. Vector Embeddings & Indexing 🔢
-            - Each text chunk is passed to an embedding model (e.g., Google `text-embedding-004` or OpenAI `text-embedding-3-small`).
+            - Each text chunk is passed to an embedding model (e.g., Google `models/embedding-001` or OpenAI `text-embedding-3-small`).
             - Text is transformed into high-dimensional vectors representing semantic meaning and stored in **ChromaDB**.
             """
         )

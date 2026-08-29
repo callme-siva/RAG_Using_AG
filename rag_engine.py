@@ -54,8 +54,9 @@ class RAGEngine:
             raise ValueError(f"API Key for {self.provider} is required.")
 
         if self.provider == "Google Gemini":
+            # models/embedding-001 is universally supported across Gemini API versions for embedContent
             return GoogleGenerativeAIEmbeddings(
-                model="models/text-embedding-004",
+                model="models/embedding-001",
                 google_api_key=self.api_key,
             )
         elif self.provider == "OpenAI":
@@ -131,17 +132,38 @@ class RAGEngine:
     def build_vector_store(self, chunks: List[Document]) -> int:
         """
         Builds or updates the in-memory Chroma vector store with document chunks.
-        Returns the total number of chunks indexed.
+        Includes automatic fallback for Google embedding model variants.
         """
         if not chunks:
             raise ValueError("No valid document chunks to index.")
 
-        # Create fresh Chroma in-memory store
-        self.vector_store = Chroma.from_documents(
-            documents=chunks,
-            embedding=self.embedding_model,
-        )
-        return len(chunks)
+        if self.provider == "Google Gemini":
+            # List candidate embedding model names in order of compatibility
+            candidates = ["models/embedding-001", "embedding-001", "text-embedding-004", "models/text-embedding-004"]
+            last_err = None
+            for model_name in candidates:
+                try:
+                    emb = GoogleGenerativeAIEmbeddings(
+                        model=model_name,
+                        google_api_key=self.api_key,
+                    )
+                    self.vector_store = Chroma.from_documents(
+                        documents=chunks,
+                        embedding=emb,
+                    )
+                    self.embedding_model = emb
+                    return len(chunks)
+                except Exception as e:
+                    last_err = e
+                    continue
+            if last_err:
+                raise last_err
+        else:
+            self.vector_store = Chroma.from_documents(
+                documents=chunks,
+                embedding=self.embedding_model,
+            )
+            return len(chunks)
 
     def retrieve_context(self, query: str) -> List[Document]:
         """

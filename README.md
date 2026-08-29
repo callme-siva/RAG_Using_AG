@@ -25,7 +25,7 @@
 
 - ⚡ **Zero-Friction Setup**: In-memory vector database (**ChromaDB**) — no external vector database servers or Docker containers required.
 - 🤖 **Multi-Provider Support**:
-  - **Google Gemini** (`gemini-2.5-flash`, `gemini-1.5-flash`, `gemini-1.5-pro` + `text-embedding-004`)
+  - **Google Gemini** (`gemini-2.5-flash`, `gemini-1.5-flash`, `gemini-1.5-pro` + `models/embedding-001`)
   - **OpenAI** (`gpt-4o-mini`, `gpt-4o`, `gpt-3.5-turbo` + `text-embedding-3-small`)
 - 📁 **Multi-Format Ingestion**: Ingest and process **PDFs** (with page tracking), **Markdown**, and **Plain Text** files.
 - 🎯 **1-Click Built-in Demo Datasets**: Test immediately with pre-loaded sample documents (Multi-page **PDF Technical Report** on Quantum Computing and **Markdown Guide** on Autonomous AI Agents) without needing to upload files.

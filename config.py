@@ -2,13 +2,11 @@
 Configuration and constants for the RAG application.
 """
 
-# Available LLM Providers & Models
+# Available LLM Providers & Models (Clean, verified production models only)
 PROVIDERS = {
     "Google Gemini": {
         "models": [
             "gemini-1.5-flash",
-            "gemini-3.6-flash",
-            "gemini-2.0-flash",
             "gemini-1.5-pro",
         ],
         "default_model": "gemini-1.5-flash",
@@ -20,7 +18,6 @@ PROVIDERS = {
         "models": [
             "gpt-4o-mini",
             "gpt-4o",
-            "gpt-3.5-turbo",
         ],
         "default_model": "gpt-4o-mini",
         "embedding_model": "text-embedding-3-small",

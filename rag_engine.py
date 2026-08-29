@@ -249,9 +249,9 @@ class RAGEngine:
             for chunk in chain.stream({"context": context_text, "question": query}):
                 yield chunk
         except Exception as e:
-            # If Google Gemini model failed (e.g. 404 deprecated model), attempt fallback models
+            # If Google Gemini model failed, attempt fallback to stable gemini-1.5-flash / gemini-1.5-pro
             if self.provider == "Google Gemini":
-                fallback_models = ["gemini-1.5-flash", "gemini-3.6-flash", "gemini-2.0-flash", "gemini-1.5-pro"]
+                fallback_models = ["gemini-1.5-flash", "gemini-1.5-pro"]
                 streamed = False
                 for fb_model in fallback_models:
                     if fb_model == self.model_name:
@@ -260,6 +260,28 @@ class RAGEngine:
                         self.llm = ChatGoogleGenerativeAI(
                             model=fb_model,
                             google_api_key=self.api_key,
+                            temperature=self.temperature,
+                        )
+                        fallback_chain = prompt_template | self.llm | StrOutputParser()
+                        for chunk in fallback_chain.stream({"context": context_text, "question": query}):
+                            yield chunk
+                        self.model_name = fb_model
+                        streamed = True
+                        break
+                    except Exception:
+                        continue
+                if not streamed:
+                    raise e
+            elif self.provider == "OpenAI":
+                fallback_models = ["gpt-4o-mini", "gpt-4o"]
+                streamed = False
+                for fb_model in fallback_models:
+                    if fb_model == self.model_name:
+                        continue
+                    try:
+                        self.llm = ChatOpenAI(
+                            model_name=fb_model,
+                            openai_api_key=self.api_key,
                             temperature=self.temperature,
                         )
                         fallback_chain = prompt_template | self.llm | StrOutputParser()
